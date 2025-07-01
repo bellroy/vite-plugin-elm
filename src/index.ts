@@ -26,6 +26,7 @@ const parseImportId = (id: string) => {
 export const plugin = (userOptions: Parameters<typeof parseOptions>[0] = {}): Plugin => {
   const options = parseOptions(userOptions)
   const compilableFiles: Map<string, Set<string>> = new Map()
+  const importerMap = new Map<string, Set<string>>() // importee -> Set(importers)
 
   return {
     name: 'vite-plugin-elm',
@@ -53,18 +54,24 @@ export const plugin = (userOptions: Parameters<typeof parseOptions>[0] = {}): Pl
         return modules
       }
     },
+    resolveId(id, importer) {
+      if (importer) {
+        if (!importerMap.has(id)) {
+          importerMap.set(id, new Set())
+        }
+        importerMap.get(id)!.add(importer)
+      }
+      return null // Let other plugins handle resolution
+    },
     async load(id) {
       const { valid, pathname, withParams } = parseImportId(id)
       if (!valid) return
 
       const accompanies = await (() => {
         if (withParams.length > 0) {
-          const importTree = this.getModuleIds()
-          let importer = ''
-          for (const moduleId of importTree) {
-            if (moduleId === id) break
-            importer = moduleId
-          }
+          const importers = importerMap.get(id) || new Set()
+          // We assume that the first importer is the main entry point for the Elm file, and that it is only
+          const importer = importers.size > 0 ? Array.from(importers)[0] : ''
           const resolveAccompany = async (accompany: string) => (await this.resolve(accompany, importer))?.id ?? ''
           return Promise.all(withParams.map(resolveAccompany))
         } else {
