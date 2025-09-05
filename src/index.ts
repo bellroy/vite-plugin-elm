@@ -74,14 +74,14 @@ export const plugin = (userOptions: Parameters<typeof parseOptions>[0] = {}): Pl
           const importer = Array.from(importers)[0]
           const resolveAccompany = async (accompany: string) => {
             if (importer) {
-              return (await this.resolve(accompany, importer))?.id ?? '';
+              return (await this.resolve(accompany, importer))?.id ?? ''
             } else if (accompany.startsWith('./') || accompany.startsWith('../')) {
               // Resolve relative to the elm file's directory
-              return (await this.resolve(accompany, pathname))?.id ?? '';
+              return (await this.resolve(accompany, pathname))?.id ?? ''
             } else {
-              return (await this.resolve(accompany))?.id ?? '';
+              return (await this.resolve(accompany))?.id ?? ''
             }
-          };
+          }
           return Promise.all(withParams.map(resolveAccompany))
         } else {
           return Promise.resolve([])
