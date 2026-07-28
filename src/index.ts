@@ -1,6 +1,6 @@
 //@ts-expect-error typing isn't provided
 import nodeElmcompiler from 'node-elm-compiler'
-import { normalize, relative } from 'path'
+import { normalize } from 'path'
 import type { ModuleNode, Plugin } from 'vite'
 import { injectHMR } from './hmrInjector.js'
 import { acquireLock } from './mutex.js'
@@ -8,7 +8,7 @@ import { parseOptions } from './pluginOptions.js'
 import { compile } from './compiler.js'
 
 const trimDebugMessage = (code: string): string => code.replace(/(console\.warn\('Compiled in DEBUG mode)/, '// $1')
-const viteProjectPath = (dependency: string) => `/${relative(process.cwd(), dependency)}`
+const viteProjectPath = (dependency: string) => `/@fs${normalize(dependency)}`
 
 const parseImportId = (id: string) => {
   const parsedId = new URL(id, 'file://')
